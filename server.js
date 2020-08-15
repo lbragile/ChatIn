@@ -41,9 +41,11 @@ io.on("connection", (socket) => {
   // broadcase message to all
   socket.on("message-sent", (data) => {
     let room_index = rooms.socket_id.indexOf(data.id);
-    socket
-      .in(`${rooms.room_num[room_index]}`)
-      .emit("message-clients", data.message);
+    let room_name = rooms.room_num[room_index];
+    io.to(room_name).emit("message-sent", {
+      message: data.message,
+      sender: data.id,
+    });
   });
 
   socket.on("disconnect", () => {
@@ -57,5 +59,3 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-// io.on("newMsg", (data) => console.log(data));
