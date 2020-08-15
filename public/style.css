@@ -3,3 +3,49 @@
   margin: 0;
   box-sizing: border-box;
 }
+
+.container {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.box {
+  padding: 20px;
+  position: relative;
+  border-radius: 5px;
+  max-width: 45%;
+  word-wrap: break-word;
+}
+
+.box-right::before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+
+  border-left: 24px solid transparent;
+  border-top: 12px solid white;
+  border-bottom: 12px solid white;
+
+  background: inherit;
+  top: 50%;
+
+  right: 0;
+  transform: translate(100%, -50%);
+}
+
+.box-left::before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+
+  border-right: 24px solid transparent;
+  border-top: 12px solid white;
+  border-bottom: 12px solid white;
+
+  background: inherit;
+  top: 50%;
+
+  left: 0;
+  transform: translate(-100%, -50%);
+}

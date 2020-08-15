@@ -42,10 +42,15 @@ io.on("connection", (socket) => {
   socket.on("message-sent", (data) => {
     let room_index = rooms.socket_id.indexOf(data.id);
     let room_name = rooms.room_num[room_index];
-    io.to(room_name).emit("message-sent", {
-      message: data.message,
-      sender: data.id,
-    });
+    let socket_list = io.sockets.adapter.rooms[room_name].sockets;
+
+    // only send a message when there are 2 clients in the specific chat room
+    if (Object.keys(socket_list).length == 2) {
+      io.to(room_name).emit("message-sent", {
+        message: data.message,
+        sender: data.id,
+      });
+    }
   });
 
   socket.on("disconnect", () => {
