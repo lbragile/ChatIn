@@ -31,6 +31,16 @@ io.on("connection", (socket) => {
 
     if (rooms.socket_id.length % 2 == 0) {
       room_num++;
+      var clients = Object.keys(
+        io.sockets.adapter.rooms[`${room_num - 1}`].sockets
+      );
+
+      var sent_data = {
+        first: clients[0],
+        second: clients[1],
+      };
+      socket.to(`${room_num - 1}`).emit("users-joined", sent_data); // to first user
+      socket.emit("users-joined", sent_data); // to second user
     }
 
     for (var i = 0; i < rooms.socket_id.length; i++) {
