@@ -1,6 +1,6 @@
 const client = io();
 
-document.getElementById("join").addEventListener("click", function () {
+document.getElementById("chat").addEventListener("click", function () {
   console.log(client.id);
 
   // hide the join button

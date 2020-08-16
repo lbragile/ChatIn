@@ -4,8 +4,24 @@
   box-sizing: border-box;
 }
 
-span {
+span,
+h2 {
   font-weight: bold;
+}
+
+#logo-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.btn {
+  float: right;
+}
+
+.form-group {
+  min-width: 300px;
 }
 
 .container {

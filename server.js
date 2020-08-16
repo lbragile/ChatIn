@@ -11,16 +11,35 @@ const server = app.listen(port, () => console.log(`listening on port ${port}`));
 const io = socket(server);
 
 app.use(express.static(path.join(__dirname, "public"))); // use all files defined in public folder
+app.set("view engine", "ejs"); // set the engine
+
+// not using database since this project is simply for the chat system
+var users = ["admin"];
 
 app.get("/", (req, res) => {
-  res.render("index.html");
+  res.render("login", { message: "" });
+});
+
+app.post("/", (req, res) => {
+  if (req.body.username.indexOf(" ") >= 0) {
+    res.render("login", { message: "Remove space" });
+  } else if (users.includes(req.body.username.toLowerCase())) {
+    res.render("login", { message: "Username exists" });
+  } else {
+    users.push(req.body.username);
+    res.status(302).redirect("/chat");
+  }
+});
+
+app.get("/chat", (req, res) => {
+  res.render("chat");
 });
 
 var rooms = { socket_id: [], room_num: [] },
   room_num = 0;
 io.on("connection", (socket) => {
   console.log("New user detected");
-
+  socket.username = users[users.length - 1];
   socket.on("join-room", (id) => {
     console.log(`\n\nWelcome: ${id}\n`);
 
@@ -65,10 +84,14 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`${socket.id} disconnected`);
+    let user_index = users.indexOf(socket.username);
+    users.splice(user_index, 1);
+
     let index = rooms.socket_id.indexOf(socket.id);
     rooms.socket_id.splice(index, 1);
     rooms.room_num.splice(index, 1);
 
+    socket.leave(room_num.toString());
     if (rooms.socket_id.length % 2 == 1) {
       room_num--;
     }
