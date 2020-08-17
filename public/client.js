@@ -55,11 +55,15 @@ client.on("message-sent", (data) => {
   let chat_area = document.getElementById("chat-area");
   message_div.prepend(message_title);
   chat_area.append(message_div);
-  document.getElementById("message").value = "";
+
+  let message = document.getElementById("message");
+  message.value = "";
+  message.focus();
 });
 
 client.on("users-joined", (data) => {
   let username = document.querySelector("span");
   let other_user = client.id == data.first ? data.second : data.first;
   username.textContent = "Talking to: " + other_user;
+  document.getElementById("message").focus();
 });
