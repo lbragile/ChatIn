@@ -4,16 +4,19 @@
   box-sizing: border-box;
 }
 
+:root {
+  --main-bg-color: rgb(138, 153, 119);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
 span,
 h2 {
   font-weight: bold;
-}
-
-#logo-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .btn {
@@ -26,25 +29,32 @@ h2 {
 
 .container {
   font-family: Arial, Helvetica, sans-serif;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+#chat-container {
+  background: var(--main-bg-color);
 }
 
-.box {
-  padding: 20px;
+div .box {
+  padding: 5px 20px;
   position: relative;
   border-radius: 5px;
-  max-width: 45%;
+  max-width: 30%;
   word-wrap: break-word;
 }
 
-.box-right::before {
+div .box-right::before {
   content: "";
   width: 0px;
   height: 0px;
   position: absolute;
 
   border-left: 24px solid transparent;
-  border-top: 12px solid white;
-  border-bottom: 12px solid white;
+  border-top: 12px solid var(--main-bg-color);
+  border-bottom: 12px solid var(--main-bg-color);
 
   background: inherit;
   top: 50%;
@@ -53,19 +63,29 @@ h2 {
   transform: translate(100%, -50%);
 }
 
-.box-left::before {
+div .box-left::before {
   content: "";
   width: 0px;
   height: 0px;
   position: absolute;
 
   border-right: 24px solid transparent;
-  border-top: 12px solid white;
-  border-bottom: 12px solid white;
+  border-top: 12px solid var(--main-bg-color);
+  border-bottom: 12px solid var(--main-bg-color);
 
   background: inherit;
   top: 50%;
 
   left: 0;
   transform: translate(-100%, -50%);
+}
+
+#input-area {
+  position: absolute;
+  bottom: 10%;
+}
+
+input {
+  border: 1px solid black;
+  border-radius: 5px;
 }

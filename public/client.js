@@ -29,22 +29,32 @@ document.addEventListener("keypress", function (e) {
 
 // set value on all clients
 client.on("message-sent", (data) => {
-  var div = document.createElement("div");
-  div.innerHTML = data.message;
+  var message_div = document.createElement("div");
+  var message_title = document.createElement("span");
 
-  var bg_color, box_pseudo, margin_x;
+  message_div.innerHTML = data.message;
+
+  var bg_color, box_pseudo, margin_x, title;
   if (client.id == data.sender) {
     bg_color = "bg-secondary";
     box_pseudo = "box-right";
     margin_x = "mr-4 ml-auto";
+    title = "You";
   } else {
     bg_color = "bg-dark";
     box_pseudo = "box-left";
     margin_x = "ml-4";
+    title = data.sender;
   }
 
-  div.className = `my-3 ${margin_x} box ${box_pseudo} ${bg_color} text-light text-left`;
-  document.getElementById("input-area").parentNode.appendChild(div);
+  message_title.innerHTML = title;
+  message_title.style["fontWeight"] = "bold";
+  message_title.className = "d-block text-center";
+
+  message_div.className = `my-1 ${margin_x} box ${box_pseudo} ${bg_color} text-light text-left col`;
+  let chat_area = document.getElementById("chat-area");
+  message_div.prepend(message_title);
+  chat_area.append(message_div);
   document.getElementById("message").value = "";
 });
 

@@ -1,13 +1,13 @@
 <%- include('_header') -%>
 
   <body>
-    <div class="container">
-      <a href="#" class="my-2 d-flex justify-content-center" id="chat"
-        >Chat</a
-      >
+    <div class="container h-100" id="chat-container">
+      <a href="#" class="my-2 d-flex justify-content-center" id="chat">Chat</a>
+      <span class="d-flex justify-content-center"></span>
+      <div id="chat-area"></div>
 
       <div
-        class="input-group my-2 d-flex justify-content-center"
+        class="input-group d-flex justify-content-center"
         id="input-area"
       >
         <input
@@ -19,8 +19,6 @@
         <button type="submit" class="btn btn-primary ml-2" id="send">
           Send
         </button>
-      </div>
-      <span class="d-flex justify-content-center"></span>
     </div>
 
     <script
