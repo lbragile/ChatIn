@@ -14,7 +14,7 @@ app.use(express.static(path.join(__dirname, "public"))); // use all files define
 app.set("view engine", "ejs"); // set the engine
 
 // not using database since this project is simply for the chat system
-var users = ["admin"];
+var users = [];
 
 app.get("/", (req, res) => {
   res.render("login", { message: "" });
@@ -26,8 +26,13 @@ app.post("/", (req, res) => {
   } else if (users.includes(req.body.username.toLowerCase())) {
     res.render("login", { message: "Username exists" });
   } else {
-    users.push(req.body.username);
-    res.status(302).redirect("/chat");
+    users.push({ name: req.body.username, id: "" });
+
+    if (req.body.username.toLowerCase() != "admin") {
+      res.status(302).redirect("/chat");
+    } else {
+      res.status(302).redirect("/admin");
+    }
   }
 });
 
@@ -35,65 +40,87 @@ app.get("/chat", (req, res) => {
   res.render("chat");
 });
 
-var rooms = { socket_id: [], room_num: [] },
-  room_num = 0;
-io.on("connection", (socket) => {
-  console.log("New user detected");
-  socket.username = users[users.length - 1];
-  socket.on("join-room", (id) => {
-    console.log(`\n\nWelcome: ${id}\n`);
+app.get("/admin", (req, res) => {
+  res.render("admin");
+});
 
-    rooms.socket_id.push(id);
-    rooms.room_num.push(room_num.toString());
+const admin = io.of("/admin"),
+  client = io.of("/chat");
 
-    socket.join(room_num.toString()); // join the room
+function setUsernameAndRoomname(socket) {
+  let index = users.length - 1;
+  socket.username = users[index].name;
+  console.log(socket.username);
+  socket.room_name = socket.username + "_admin";
+  users[index].id = socket.id;
+}
 
-    if (rooms.socket_id.length % 2 == 0) {
-      room_num++;
-      var clients = Object.keys(
-        io.sockets.adapter.rooms[`${room_num - 1}`].sockets
-      );
+admin.on("connection", (socket) => {
+  socket.on("message_admin", (message) => console.log(message));
 
-      var sent_data = {
-        first: clients[0],
-        second: clients[1],
-      };
-      socket.to(`${room_num - 1}`).emit("users-joined", sent_data); // to first user
-      socket.emit("users-joined", sent_data); // to second user
-    }
+  setUsernameAndRoomname(socket);
 
-    for (var i = 0; i < rooms.socket_id.length; i++) {
-      console.log(rooms.socket_id[i], rooms.room_num[i]);
-    }
+  socket.on("join-room", (data) => {
+    socket.join(data.room);
+    clientList(data.room, socket.id); // list of users in the room
+  });
+
+  socket.on("message-sent", (data) => {
+    client.emit("message-received", {
+      message: data.message,
+      sender: "admin",
+    });
+    socket.emit("message-received", {
+      message: data.message,
+      sender: "admin",
+    });
+  });
+});
+
+client.on("connection", (socket) => {
+  socket.on("message_client", (message) => console.log(message));
+
+  setUsernameAndRoomname(socket);
+
+  socket.on("join-room", () => {
+    socket.join(socket.room_name); // join the room
+
+    console.log(`\n\nWelcome user - ${socket.username}\n`);
+    admin.emit("join-request", {
+      username: socket.username,
+      room: socket.room_name,
+    }); // to admin
   });
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    let room_index = rooms.socket_id.indexOf(data.id);
-    let room_name = rooms.room_num[room_index];
-    let socket_list = io.sockets.adapter.rooms[room_name].sockets;
-
-    // only send a message when there are 2 clients in the specific chat room
-    if (Object.keys(socket_list).length == 2) {
-      io.to(room_name).emit("message-sent", {
-        message: data.message,
-        sender: data.id,
-      });
-    }
+    admin.emit("message-received", {
+      message: data.message,
+      sender: data.username,
+    });
+    socket.emit("message-received", {
+      message: data.message,
+      sender: data.username,
+    });
   });
 
-  socket.on("disconnect", () => {
-    console.log(`${socket.id} disconnected`);
-    let user_index = users.indexOf(socket.username);
-    users.splice(user_index, 1);
+  // socket.on("disconnect", () => {
+  //   if (socket.username != "admin") {
+  //     console.log(`${socket.username} disconnected`);
+  //     socket.leave(socket.room_name); // leave the room
 
-    let index = rooms.socket_id.indexOf(socket.id);
-    rooms.socket_id.splice(index, 1);
-    rooms.room_num.splice(index, 1);
-
-    socket.leave(room_num.toString());
-    if (rooms.socket_id.length % 2 == 1) {
-      room_num--;
-    }
-  });
+  //     let index = users.indexOf(socket.username);
+  //     users.splice(index, 1);
+  //   }
+  // });
 });
+
+function clientList(room_name, admin_id) {
+  io.of("/chat")
+    .in(room_name)
+    .clients((error, client) => {
+      if (error) throw error;
+      client.push(admin_id);
+      console.log(client, "in room: " + room_name);
+    });
+}

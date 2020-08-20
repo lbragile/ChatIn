@@ -1,21 +1,17 @@
-var socket = io.connect("/chat");
+var socket = io.connect("/admin");
 
 socket.on("connect", function () {
-  socket.emit("message_client", "Message: sent by client");
+  socket.emit("message_admin", "Message: sent by admin");
+  // socket.emit("join-room");
+
+  console.log(socket.id);
 });
 
-document.getElementById("chat").addEventListener("click", function () {
-  console.log(socket.id);
-
-  // hide the join button
-  this.className = ".d-none";
-  this.style.display = "none";
-
+socket.on("join-request", (data) => {
   let chat_title = document.querySelector("span");
-  chat_title.textContent = "Talking to: admin";
+  chat_title.textContent = "Talking to: " + data.username;
   document.getElementById("message").focus();
-
-  socket.emit("join-room");
+  socket.emit("join-room", data);
 });
 
 function emitMessage() {
@@ -39,7 +35,6 @@ document.addEventListener("keypress", function (e) {
   }
 });
 
-// set value on all clients
 socket.on("message-received", (data) => {
   var message_div = document.createElement("div");
   var message_title = document.createElement("span");
