@@ -62,7 +62,7 @@ admin.on("connection", (socket) => {
 
   socket.on("join-room", (data) => {
     socket.join(data.room);
-    clientList(data.room, socket.id); // list of users in the room
+    clientList(data.room); // list of users in the room
   });
 
   socket.on("message-sent", (data) => {
@@ -74,6 +74,13 @@ admin.on("connection", (socket) => {
       message: data.message,
       sender: "admin",
     });
+  });
+
+  socket.on("disconnect", () => {
+    clientList(socket.room_name);
+
+    socket.leave(socket.room_name); // leave the room
+    clientList(socket.room_name);
   });
 });
 
@@ -94,33 +101,42 @@ client.on("connection", (socket) => {
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
+    var sender;
+    users.forEach((user) => {
+      if (user.id == data.id) {
+        sender = user.name;
+      }
+    });
+
     admin.emit("message-received", {
       message: data.message,
-      sender: data.username,
+      sender,
+      id: data.id,
     });
     socket.emit("message-received", {
       message: data.message,
-      sender: data.username,
+      sender,
+      id: data.id,
     });
   });
 
-  // socket.on("disconnect", () => {
-  //   if (socket.username != "admin") {
-  //     console.log(`${socket.username} disconnected`);
-  //     socket.leave(socket.room_name); // leave the room
+  socket.on("disconnect", () => {
+    console.log(`${socket.username} disconnected`);
 
-  //     let index = users.indexOf(socket.username);
-  //     users.splice(index, 1);
-  //   }
-  // });
+    socket.leave(socket.room_name); // leave the room
+
+    let index = users.indexOf(socket.username);
+    users.splice(index, 1);
+  });
 });
 
-function clientList(room_name, admin_id) {
-  io.of("/chat")
-    .in(room_name)
-    .clients((error, client) => {
-      if (error) throw error;
-      client.push(admin_id);
-      console.log(client, "in room: " + room_name);
-    });
+function clientList(room_name) {
+  var clients = [];
+  client.in(room_name).clients((error, user) => {
+    clients.push(user);
+  });
+  admin.in(room_name).clients((error, user) => {
+    clients.push(user);
+    console.log(clients, "in room: " + room_name);
+  });
 }

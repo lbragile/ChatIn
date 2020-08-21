@@ -2,14 +2,42 @@ var socket = io.connect("/admin");
 
 socket.on("connect", function () {
   socket.emit("message_admin", "Message: sent by admin");
-  // socket.emit("join-room");
+  socket.username = "admin";
 
   console.log(socket.id);
 });
 
 socket.on("join-request", (data) => {
   let chat_title = document.querySelector("span");
-  chat_title.textContent = "Talking to: " + data.username;
+  var date = new Date();
+  var months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  var days = [
+    "Monday",
+    "Tuesday",
+    "Wednsday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  chat_title.textContent = `Talking to: ${data.username} ~ ${
+    days[date.getDay()]
+  } (${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()})`;
   document.getElementById("message").focus();
   socket.emit("join-room", data);
 });
@@ -35,6 +63,10 @@ document.addEventListener("keypress", function (e) {
   }
 });
 
+function padNum(num) {
+  return (num < 10 ? "0" : "") + num;
+}
+
 socket.on("message-received", (data) => {
   var message_div = document.createElement("div");
   var message_title = document.createElement("span");
@@ -42,16 +74,22 @@ socket.on("message-received", (data) => {
   message_div.innerHTML = data.message;
 
   var bg_color, box_pseudo, margin_x, title;
+  var date = new Date();
+  var seconds = padNum(date.getSeconds());
+  var minutes = padNum(date.getMinutes());
+  var hours = padNum(date.getHours());
+
+  date_string = ` @ ${hours}:${minutes}:${seconds}`;
   if (socket.username == data.sender) {
     bg_color = "bg-secondary";
     box_pseudo = "box-right";
     margin_x = "mr-4 ml-auto";
-    title = "You";
+    title = "You" + date_string;
   } else {
     bg_color = "bg-dark";
     box_pseudo = "box-left";
     margin_x = "ml-4";
-    title = data.sender;
+    title = data.sender + date_string;
   }
 
   message_title.innerHTML = title;
