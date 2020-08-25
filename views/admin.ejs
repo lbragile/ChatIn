@@ -1,10 +1,11 @@
 <%- include('_header') -%>
 
     <div class="container h-100" id="chat-container">
-      <span class="d-flex justify-content-center"></span>
+      <span class="d-flex justify-content-center" id="title-info"></span>
       <div class="h-50 overflow-auto">
         <div id="chat-area"></div>
       </div>
+      <span class="d-flex justify-content-center" id="typing"></span>
 
       <div class="input-group d-flex justify-content-center" id="input-area">
         <input type="text" class="px-2" placeholder="Enter Message" id="message" />
@@ -15,6 +16,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="./admin.js"></script>
+    <script type="module" src="./admin.js"></script>
   </body>
 </html>

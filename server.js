@@ -26,9 +26,8 @@ app.post("/", (req, res) => {
   } else if (users.includes(req.body.username.toLowerCase())) {
     res.render("login", { message: "Username exists" });
   } else {
-    users.push({ name: req.body.username, id: "" });
-
     if (req.body.username.toLowerCase() != "admin") {
+      users.push(req.body.username);
       res.status(302).redirect("/chat");
     } else {
       res.status(302).redirect("/admin");
@@ -47,96 +46,56 @@ app.get("/admin", (req, res) => {
 const admin = io.of("/admin"),
   client = io.of("/chat");
 
-function setUsernameAndRoomname(socket) {
-  let index = users.length - 1;
-  socket.username = users[index].name;
-  console.log(socket.username);
-  socket.room_name = socket.username + "_admin";
-  users[index].id = socket.id;
-}
-
+// ADMIN
 admin.on("connection", (socket) => {
-  socket.on("message_admin", (message) => console.log(message));
+  socket.username = "admin";
 
-  setUsernameAndRoomname(socket);
-
-  socket.on("join-room", (data) => {
-    socket.join(data.room);
-    clientList(data.room); // list of users in the room
+  socket.on("chat", (username) => {
+    console.log(`\n\n ${username} - Wants to chat\n`);
   });
 
   socket.on("message-sent", (data) => {
-    client.emit("message-received", {
-      message: data.message,
-      sender: "admin",
-    });
-    socket.emit("message-received", {
-      message: data.message,
-      sender: "admin",
-    });
+    client.emit("message-received", data);
+    socket.emit("message-received", data);
   });
 
-  socket.on("disconnect", () => {
-    clientList(socket.room_name);
+  socket.on("typing", (username) => {
+    client.emit("admin-typing", username);
+  });
 
-    socket.leave(socket.room_name); // leave the room
-    clientList(socket.room_name);
+  socket.on("stop-typing", () => {
+    client.emit("admin-stop-typing");
   });
 });
 
-client.on("connection", (socket) => {
-  socket.on("message_client", (message) => console.log(message));
+// CLIENT
+client.on("connect", (socket) => {
+  socket.username = users[users.length - 1];
 
-  setUsernameAndRoomname(socket);
-
-  socket.on("join-room", () => {
-    socket.join(socket.room_name); // join the room
-
+  socket.on("chat", () => {
     console.log(`\n\nWelcome user - ${socket.username}\n`);
-    admin.emit("join-request", {
-      username: socket.username,
-      room: socket.room_name,
-    }); // to admin
+    admin.emit("join-request", socket.username);
+    client.emit("chat-entered", socket.username);
   });
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    var sender;
-    users.forEach((user) => {
-      if (user.id == data.id) {
-        sender = user.name;
-      }
-    });
+    admin.emit("message-received", data);
+    socket.emit("message-received", data);
+  });
 
-    admin.emit("message-received", {
-      message: data.message,
-      sender,
-      id: data.id,
-    });
-    socket.emit("message-received", {
-      message: data.message,
-      sender,
-      id: data.id,
-    });
+  socket.on("typing", (username) => {
+    admin.emit("client-typing", username);
+  });
+
+  socket.on("stop-typing", () => {
+    admin.emit("client-stop-typing");
   });
 
   socket.on("disconnect", () => {
     console.log(`${socket.username} disconnected`);
 
-    socket.leave(socket.room_name); // leave the room
-
     let index = users.indexOf(socket.username);
     users.splice(index, 1);
   });
 });
-
-function clientList(room_name) {
-  var clients = [];
-  client.in(room_name).clients((error, user) => {
-    clients.push(user);
-  });
-  admin.in(room_name).clients((error, user) => {
-    clients.push(user);
-    console.log(clients, "in room: " + room_name);
-  });
-}
