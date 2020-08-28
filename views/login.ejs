@@ -1,24 +1,58 @@
-<%- include('_header') -%>
-
-        <div class="container">
-            <h2>Login</h2>
-            <form method="POST" action="/">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" name="username" class="form-control" id="username" placeholder="JohnDoe">
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" name="password" class="form-control" id="password" placeholder="Secure_Password!">
-                </div>
-
-                <% if (message) {%>
-                    <h5 class="alert alert-danger" role="alert"><%= message %> </h5> 
-                <% } %>  
-                
-                <button type="submit" class="btn btn-primary d-flex justify-content-center">Login</button>
-            </form>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat App</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="https://img.icons8.com/ultraviolet/40/000000/chat.png"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Login</h2>
+      <form method="POST" action="/">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            name="username"
+            class="form-control"
+            id="username"
+            placeholder="JohnDoe"
+          />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            class="form-control"
+            id="password"
+            placeholder="Secure_Password!"
+          />
         </div>
 
-    </body>
+        <% if (message) {%>
+        <h5 class="alert alert-danger" role="alert"><%= message %></h5>
+        <% } %>
+
+        <button
+          type="submit"
+          class="btn btn-primary d-flex justify-content-center"
+        >
+          Login
+        </button>
+      </form>
+    </div>
+  </body>
 </html>

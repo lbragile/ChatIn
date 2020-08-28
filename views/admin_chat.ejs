@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat App</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../style.css" />
     <link
       rel="shortcut icon"
       type="image/png"
@@ -19,13 +19,6 @@
   </head>
   <body>
     <div class="container h-100" id="chat-container">
-      <button
-        type="button"
-        class="btn btn-secondary my-2 d-flex justify-content-center"
-        id="chat"
-      >
-        Chat
-      </button>
       <span class="d-flex justify-content-center" id="title-info"></span>
       <div class="h-50 overflow-auto">
         <div id="chat-area"></div>
@@ -46,6 +39,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script type="module" src="client.js"></script>
+    <script type="module" src="../admin.js"></script>
   </body>
 </html>

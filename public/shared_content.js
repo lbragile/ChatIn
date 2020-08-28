@@ -87,4 +87,12 @@ function messageDisplay(username, data) {
   chat_area.append(message_div);
 }
 
-export { chatDetails, emitMessage, padNum, messageDisplay };
+function addUserToAdminList(username) {
+  var list_item = document.createElement("li");
+  list_item.id = username;
+  var item_text = document.createTextNode(username);
+  list_item.appendChild(item_text);
+  document.getElementById("joined-users").appendChild(list_item);
+}
+
+export { chatDetails, emitMessage, padNum, messageDisplay, addUserToAdminList };

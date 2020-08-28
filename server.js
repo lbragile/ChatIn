@@ -1,6 +1,7 @@
 const express = require("express");
 const socket = require("socket.io");
 const path = require("path");
+const { render } = require("ejs");
 
 const app = express();
 app.use(express.json({ limit: "1mb" })); // for parsing application/json
@@ -21,16 +22,19 @@ app.get("/", (req, res) => {
 });
 
 app.post("/", (req, res) => {
+  var lower_username = req.body.username.toLowerCase();
   if (req.body.username.indexOf(" ") >= 0) {
     res.render("login", { message: "Remove space" });
-  } else if (users.includes(req.body.username.toLowerCase())) {
+  } else if (users.includes(lower_username)) {
     res.render("login", { message: "Username exists" });
+  } else if (lower_username == "") {
+    res.render("login", { message: "Cannot be blank" });
   } else {
-    if (req.body.username.toLowerCase() != "admin") {
-      users.push(req.body.username);
-      res.status(302).redirect("/chat");
+    users.push(req.body.username);
+    if (lower_username != "admin") {
+      res.status(302).redirect("/chat?username=" + req.body.username);
     } else {
-      res.status(302).redirect("/admin");
+      res.status(302).redirect("/admin?chat=0");
     }
   }
 });
@@ -40,7 +44,8 @@ app.get("/chat", (req, res) => {
 });
 
 app.get("/admin", (req, res) => {
-  res.render("admin");
+  var render_file = parseInt(req.query.chat) ? "admin_chat" : "admin_menu";
+  res.render(render_file);
 });
 
 const admin = io.of("/admin"),
@@ -70,12 +75,16 @@ admin.on("connection", (socket) => {
 
 // CLIENT
 client.on("connect", (socket) => {
-  socket.username = users[users.length - 1];
+  socket.username = socket.request.headers.referer.split("=")[1];
 
   socket.on("chat", () => {
     console.log(`\n\nWelcome user - ${socket.username}\n`);
-    admin.emit("join-request", socket.username);
-    client.emit("chat-entered", socket.username);
+    admin.emit("join-request", {
+      id: socket.id,
+      username: socket.username,
+      users,
+    });
+    socket.emit("chat-entered", socket.username);
   });
 
   // broadcase message to all
@@ -97,5 +106,7 @@ client.on("connect", (socket) => {
 
     let index = users.indexOf(socket.username);
     users.splice(index, 1);
+
+    admin.emit("client-disconnect", socket.username);
   });
 });
