@@ -51,6 +51,11 @@ app.get("/admin", (req, res) => {
 const admin = io.of("/admin"),
   client = io.of("/chat");
 
+function getClientId(socket) {
+  var url_string = socket.request.headers.referer;
+  return "/chat#" + /(?<=(id=)).*$/.exec(url_string)[0];
+}
+
 // ADMIN
 admin.on("connection", (socket) => {
   socket.username = "admin";
@@ -60,16 +65,16 @@ admin.on("connection", (socket) => {
   });
 
   socket.on("message-sent", (data) => {
-    client.emit("message-received", data);
+    client.to(getClientId(socket)).emit("message-received", data);
     socket.emit("message-received", data);
   });
 
   socket.on("typing", (username) => {
-    client.emit("admin-typing", username);
+    client.to(getClientId(socket)).emit("admin-typing", username);
   });
 
   socket.on("stop-typing", () => {
-    client.emit("admin-stop-typing");
+    client.to(getClientId(socket)).emit("admin-stop-typing");
   });
 });
 
@@ -80,7 +85,7 @@ client.on("connect", (socket) => {
   socket.on("chat", () => {
     console.log(`\n\nWelcome user - ${socket.username}\n`);
     admin.emit("join-request", {
-      id: socket.id,
+      id: socket.id.replace("/chat#", ""),
       username: socket.username,
       users,
     });

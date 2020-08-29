@@ -6,12 +6,8 @@ socket.on("connect", function () {
   socket.username = "admin";
 });
 
-var chat_clicked = false;
-
 // display the user in the admins window, when admin clicks on user connect to chat
 socket.on("join-request", (data) => {
-  chat_clicked = true;
-
   // make sure not to add user if re-connected
   var ul = document.querySelector("ul");
   var li_arr = Array.from(ul.childNodes);
@@ -37,31 +33,29 @@ socket.on("join-request", (data) => {
 });
 
 if (window.location.href.includes("chat=1")) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const client_username = urlParams.get("username");
+  SharedFunc.chatDetails(client_username);
+
   // sending message
   document.getElementById("send").addEventListener("click", function () {
-    if (chat_clicked) {
-      SharedFunc.emitMessage(socket);
-    }
+    SharedFunc.emitMessage(socket);
   });
 
   document.addEventListener("keypress", function (e) {
-    if (e.key === "Enter" && chat_clicked) {
+    if (e.key === "Enter") {
       SharedFunc.emitMessage(socket);
     }
   });
 
   // typing
   document.getElementById("message").addEventListener("focus", function () {
-    if (chat_clicked) {
-      socket.emit("typing", socket.username);
-    }
+    socket.emit("typing", socket.username);
   });
 
   // stop typing
   document.getElementById("message").addEventListener("blur", function () {
-    if (chat_clicked) {
-      socket.emit("stop-typing");
-    }
+    socket.emit("stop-typing");
   });
 }
 
