@@ -2,10 +2,6 @@ import * as SharedFunc from "./shared_content.js";
 
 var socket = io.connect("/admin");
 
-socket.on("connect", function () {
-  socket.username = "admin";
-});
-
 // display the user in the admins window, when admin clicks on user connect to chat
 socket.on("join-request", (data) => {
   // make sure not to add user if re-connected
@@ -27,37 +23,6 @@ socket.on("join-request", (data) => {
     .lastElementChild.addEventListener("click", () => {
       window.open(`/chat?username=${data.username}&id=${data.id}`, "_blank");
     });
-});
-
-if (window.location.href.includes("id=")) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const client_username = urlParams.get("username");
-  SharedFunc.chatDetails(client_username);
-
-  // sending message
-  document.getElementById("send").addEventListener("click", function () {
-    SharedFunc.emitMessage(socket);
-  });
-
-  document.addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-      SharedFunc.emitMessage(socket);
-    }
-  });
-
-  // typing
-  document.getElementById("message").addEventListener("focus", function () {
-    socket.emit("typing", socket.username);
-  });
-
-  // stop typing
-  document.getElementById("message").addEventListener("blur", function () {
-    socket.emit("stop-typing");
-  });
-}
-
-socket.on("message-received", (data) => {
-  SharedFunc.messageDisplay(socket.username, data);
 });
 
 socket.on("client-disconnect", (username) => {
