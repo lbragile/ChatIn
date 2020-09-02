@@ -2,6 +2,7 @@ const express = require("express");
 const socket = require("socket.io");
 const path = require("path");
 const { render } = require("ejs");
+const { error } = require("console");
 
 const app = express();
 app.use(express.json({ limit: "1mb" })); // for parsing application/json
@@ -34,84 +35,83 @@ app.post("/", (req, res) => {
     if (lower_username != "admin") {
       res.status(302).redirect("/chat?username=" + req.body.username);
     } else {
-      res.status(302).redirect("/admin?chat=0");
+      res.status(302).redirect("/admin");
     }
   }
 });
 
 app.get("/chat", (req, res) => {
-  res.render("chat");
+  if (req.query.id != undefined) {
+    res.render("admin_chat");
+  } else {
+    res.render("chat");
+  }
 });
 
 app.get("/admin", (req, res) => {
-  var render_file = parseInt(req.query.chat) ? "admin_chat" : "admin_menu";
-  res.render(render_file);
+  res.render("admin_menu");
 });
 
-const admin = io.of("/admin"),
-  client = io.of("/chat");
+const chat_nsp = io.of("/chat"),
+  admin_nsp = io.of("/admin");
 
-function getClientId(socket) {
-  var url_string = socket.request.headers.referer;
-  return "/chat#" + /(?<=(id=)).*$/.exec(url_string)[0];
+function listClients(room_name) {
+  chat_nsp.in(room_name).clients((error, clients) => {
+    if (error) throw error;
+    console.log(clients);
+  });
 }
 
-// ADMIN
-admin.on("connection", (socket) => {
-  socket.username = "admin";
-
-  socket.on("chat", (username) => {
-    console.log(`\n\n ${username} - Wants to chat\n`);
-  });
-
-  socket.on("message-sent", (data) => {
-    client.to(getClientId(socket)).emit("message-received", data);
-    socket.emit("message-received", data);
-  });
-
-  socket.on("typing", (username) => {
-    client.to(getClientId(socket)).emit("admin-typing", username);
-  });
-
-  socket.on("stop-typing", () => {
-    client.to(getClientId(socket)).emit("admin-stop-typing");
-  });
-});
-
 // CLIENT
-client.on("connect", (socket) => {
-  socket.username = socket.request.headers.referer.split("=")[1];
+chat_nsp.on("connect", (socket) => {
+  var url = new URL(socket.request.headers.referer);
+  socket.username = url.searchParams.get("username");
+
+  var client_id = url.searchParams.get("id");
+  if (client_id != undefined) {
+    let room = "admin_/chat#" + client_id;
+    socket.join(room, listClients(room));
+  }
 
   socket.on("chat", () => {
     console.log(`\n\nWelcome user - ${socket.username}\n`);
-    admin.emit("join-request", {
+
+    let room = "admin_" + socket.id;
+    socket.join(room, listClients(room));
+
+    admin_nsp.emit("join-request", {
       id: socket.id.replace("/chat#", ""),
       username: socket.username,
       users,
     });
-    socket.emit("chat-entered", socket.username);
+
+    socket.emit("chat-entered");
   });
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    admin.emit("message-received", data);
-    socket.emit("message-received", data);
+    chat_nsp.in(Object.keys(socket.rooms)[1]).emit("message-received", data);
   });
 
   socket.on("typing", (username) => {
-    admin.emit("client-typing", username);
+    socket.to(Object.keys(socket.rooms)[1]).emit("typing", username);
   });
 
   socket.on("stop-typing", () => {
-    admin.emit("client-stop-typing");
+    socket.to(Object.keys(socket.rooms)[1]).emit("stop-typing");
   });
 
   socket.on("disconnect", () => {
-    console.log(`${socket.username} disconnected`);
+    var url = new URL(socket.request.headers.referer);
 
-    let index = users.indexOf(socket.username);
-    users.splice(index, 1);
+    // only client side disconnection must be considered
+    if (url.searchParams.get("id") == undefined) {
+      console.log(`${socket.username} disconnected`);
 
-    admin.emit("client-disconnect", socket.username);
+      let index = users.indexOf(socket.username);
+      users.splice(index, 1);
+
+      admin_nsp.emit("client-disconnect", socket.username);
+    }
   });
 });

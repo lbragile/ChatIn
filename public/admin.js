@@ -25,14 +25,11 @@ socket.on("join-request", (data) => {
   document
     .querySelector("ul")
     .lastElementChild.addEventListener("click", () => {
-      window.open(
-        `/admin?chat=1&username=${data.username}&id=${data.id}`,
-        "_blank"
-      );
+      window.open(`/chat?username=${data.username}&id=${data.id}`, "_blank");
     });
 });
 
-if (window.location.href.includes("chat=1")) {
+if (window.location.href.includes("id=")) {
   const urlParams = new URLSearchParams(window.location.search);
   const client_username = urlParams.get("username");
   SharedFunc.chatDetails(client_username);
@@ -61,16 +58,6 @@ if (window.location.href.includes("chat=1")) {
 
 socket.on("message-received", (data) => {
   SharedFunc.messageDisplay(socket.username, data);
-});
-
-socket.on("client-typing", (username) => {
-  var typing_info = document.querySelector("#typing");
-  typing_info.textContent = `${username} is typing...`;
-});
-
-socket.on("client-stop-typing", () => {
-  var typing_info = document.querySelector("#typing");
-  typing_info.textContent = ``;
 });
 
 socket.on("client-disconnect", (username) => {

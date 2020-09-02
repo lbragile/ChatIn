@@ -2,22 +2,30 @@ import * as SharedFunc from "./shared_content.js";
 
 var socket = io.connect("/chat");
 
-// socket.on("connect", function () {
-// });
-
 var chat_clicked = false;
-document.getElementById("chat").addEventListener("click", function () {
-  // hide the join button
-  this.className = ".d-none";
-  this.style.display = "none";
 
-  chat_clicked = true;
-  socket.emit("chat");
+socket.on("connect", () => {
+  var queryParams = new URLSearchParams(window.location.search);
+  socket.username = queryParams.get("username");
+
+  if (!window.location.href.includes("id=")) {
+    document.getElementById("chat").addEventListener("click", function () {
+      // hide the join button
+      this.className = ".d-none";
+      this.style.display = "none";
+
+      chat_clicked = true;
+      socket.emit("chat");
+    });
+  } else {
+    SharedFunc.chatDetails(socket.username); // "talking to {client}"
+    socket.username = "admin";
+    chat_clicked = true;
+  }
 });
 
-socket.on("chat-entered", (username) => {
+socket.on("chat-entered", () => {
   SharedFunc.chatDetails("admin");
-  socket.username = username;
 });
 
 // sending message
@@ -51,12 +59,12 @@ socket.on("message-received", (data) => {
   SharedFunc.messageDisplay(socket.username, data);
 });
 
-socket.on("admin-typing", (username) => {
+socket.on("typing", (username) => {
   var typing_info = document.querySelector("#typing");
   typing_info.textContent = `${username} is typing...`;
 });
 
-socket.on("admin-stop-typing", () => {
+socket.on("stop-typing", () => {
   var typing_info = document.querySelector("#typing");
-  typing_info.textContent = ``;
+  typing_info.textContent = "";
 });

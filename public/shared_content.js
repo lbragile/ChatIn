@@ -39,6 +39,7 @@ function emitMessage(socket) {
     socket.emit("message-sent", {
       message,
       username: socket.username,
+      id: socket.id,
     });
   }
 }
