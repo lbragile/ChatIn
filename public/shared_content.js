@@ -32,20 +32,28 @@ function chatDetails(username) {
   // document.getElementById("message").focus();
 }
 
+function padNum(num) {
+  return (num < 10 ? "0" : "") + num;
+}
+
 function emitMessage(socket) {
   let message = document.getElementById("message").value;
+
+  var date = new Date();
+  var seconds = padNum(date.getSeconds());
+  var minutes = padNum(date.getMinutes());
+  var hours = padNum(date.getHours());
+
+  var time_string = ` @ ${hours}:${minutes}:${seconds}`;
 
   if (message.length > 0) {
     socket.emit("message-sent", {
       message,
       username: socket.username,
       id: socket.id,
+      time: time_string,
     });
   }
-}
-
-function padNum(num) {
-  return (num < 10 ? "0" : "") + num;
 }
 
 function messageDisplay(username, data) {
@@ -55,17 +63,11 @@ function messageDisplay(username, data) {
   message_div.innerHTML = data.message;
 
   var bg_color, box_pseudo, margin_x, title;
-  var date = new Date();
-  var seconds = padNum(date.getSeconds());
-  var minutes = padNum(date.getMinutes());
-  var hours = padNum(date.getHours());
-
-  var date_string = ` @ ${hours}:${minutes}:${seconds}`;
   if (username == data.username) {
     bg_color = "bg-secondary";
     box_pseudo = "box-right";
     margin_x = "mr-4 ml-auto";
-    title = "You" + date_string;
+    title = "You" + data.time;
 
     // clear the message from the message field only for sender
     let message = document.getElementById("message");
@@ -75,7 +77,7 @@ function messageDisplay(username, data) {
     bg_color = "bg-dark";
     box_pseudo = "box-left";
     margin_x = "ml-4";
-    title = data.username + date_string;
+    title = data.username + data.time;
   }
 
   message_title.innerHTML = title;

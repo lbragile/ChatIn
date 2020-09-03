@@ -1,8 +1,8 @@
 const express = require("express");
 const socket = require("socket.io");
 const path = require("path");
-const { render } = require("ejs");
-const { error } = require("console");
+const mongoose = require("mongoose");
+var Chat = require("./model/database-model");
 
 const app = express();
 app.use(express.json({ limit: "1mb" })); // for parsing application/json
@@ -90,7 +90,37 @@ chat_nsp.on("connect", (socket) => {
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    chat_nsp.in(Object.keys(socket.rooms)[1]).emit("message-received", data);
+    var room = Object.keys(socket.rooms)[1];
+    chat_nsp.in(room).emit("message-received", data);
+
+    // Chat.collection.remove(function (err) {
+    //   if (err) throw err;
+    //   // collection is now empty but not deleted
+    // });
+
+    // prepare for storing message
+    var date = new Date();
+    var day = ("0" + date.getDate()).slice(-2),
+      month = ("0" + (date.getMonth() + 1)).slice(-2),
+      year = date.getFullYear();
+    var date_string = `${day}-${month}-${year}`;
+
+    const chat = new Chat({
+      room: room,
+      message: data.message,
+      username: data.username,
+      timeSent: data.time,
+      dateSent: date_string,
+    });
+
+    // save the message information in MongoDB
+    chat.save((err) => {
+      if (err) {
+        return console.error(err);
+      } else {
+        console.log("Message saved in Database");
+      }
+    });
   });
 
   socket.on("typing", (username) => {
