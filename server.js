@@ -1,8 +1,13 @@
 const express = require("express");
 const socket = require("socket.io");
 const path = require("path");
-const mongoose = require("mongoose");
-var Chat = require("./model/database-model");
+
+var Chat = require("./models/chat-model");
+var User = require("./models/users-model");
+
+var homeRoutes = require("./routes/homeRoutes");
+var chatRoutes = require("./routes/chatRoutes");
+var adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 app.use(express.json({ limit: "1mb" })); // for parsing application/json
@@ -15,42 +20,9 @@ const io = socket(server);
 app.use(express.static(path.join(__dirname, "public"))); // use all files defined in public folder
 app.set("view engine", "ejs"); // set the engine
 
-// not using database since this project is simply for the chat system
-var users = [];
-
-app.get("/", (req, res) => {
-  res.render("login", { message: "" });
-});
-
-app.post("/", (req, res) => {
-  var lower_username = req.body.username.toLowerCase();
-  if (req.body.username.indexOf(" ") >= 0) {
-    res.render("login", { message: "Remove space" });
-  } else if (users.includes(lower_username)) {
-    res.render("login", { message: "Username exists" });
-  } else if (lower_username == "") {
-    res.render("login", { message: "Cannot be blank" });
-  } else {
-    users.push(req.body.username);
-    if (lower_username != "admin") {
-      res.status(302).redirect("/chat?username=" + req.body.username);
-    } else {
-      res.status(302).redirect("/admin");
-    }
-  }
-});
-
-app.get("/chat", (req, res) => {
-  if (req.query.id != undefined) {
-    res.render("admin_chat");
-  } else {
-    res.render("chat");
-  }
-});
-
-app.get("/admin", (req, res) => {
-  res.render("admin_menu");
-});
+app.use(homeRoutes);
+app.use("/chat", chatRoutes);
+app.use("/admin", adminRoutes);
 
 const chat_nsp = io.of("/chat"),
   admin_nsp = io.of("/admin");
@@ -62,10 +34,25 @@ function listClients(room_name) {
   });
 }
 
+// save the message information in MongoDB
+function saveInMongoDB(object) {
+  object.save((err) => {
+    if (err) {
+      return console.error(err);
+    }
+  });
+}
+
 // CLIENT
 chat_nsp.on("connect", (socket) => {
   var url = new URL(socket.request.headers.referer);
   socket.username = url.searchParams.get("username");
+
+  // save them to database
+  const user = new User({
+    username: socket.username,
+  });
+  saveInMongoDB(user);
 
   var client_id = url.searchParams.get("id");
   if (client_id != undefined) {
@@ -82,7 +69,6 @@ chat_nsp.on("connect", (socket) => {
     admin_nsp.emit("join-request", {
       id: socket.id.replace("/chat#", ""),
       username: socket.username,
-      users,
     });
 
     socket.emit("chat-entered");
@@ -92,11 +78,6 @@ chat_nsp.on("connect", (socket) => {
   socket.on("message-sent", (data) => {
     var room = Object.keys(socket.rooms)[1];
     chat_nsp.in(room).emit("message-received", data);
-
-    // Chat.collection.remove(function (err) {
-    //   if (err) throw err;
-    //   // collection is now empty but not deleted
-    // });
 
     // prepare for storing message
     var date = new Date();
@@ -113,14 +94,7 @@ chat_nsp.on("connect", (socket) => {
       dateSent: date_string,
     });
 
-    // save the message information in MongoDB
-    chat.save((err) => {
-      if (err) {
-        return console.error(err);
-      } else {
-        console.log("Message saved in Database");
-      }
-    });
+    saveInMongoDB(chat);
   });
 
   socket.on("typing", (username) => {
@@ -138,10 +112,13 @@ chat_nsp.on("connect", (socket) => {
     if (url.searchParams.get("id") == undefined) {
       console.log(`${socket.username} disconnected`);
 
-      let index = users.indexOf(socket.username);
-      users.splice(index, 1);
-
       admin_nsp.emit("client-disconnect", socket.username);
     }
   });
 });
+
+// remove collection's documents
+// Chat.collection.remove(function (err) {
+//   if (err) throw err;
+//   // collection is now empty but not deleted
+// });
