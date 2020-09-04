@@ -27,14 +27,6 @@ app.use("/admin", adminRoutes);
 const chat_nsp = io.of("/chat"),
   admin_nsp = io.of("/admin");
 
-function listClients(room_name) {
-  chat_nsp.in(room_name).clients((error, clients) => {
-    if (error) throw error;
-    console.log(clients);
-  });
-}
-
-// save the message information in MongoDB
 function saveInMongoDB(object) {
   object.save((err) => {
     if (err) {
@@ -43,66 +35,95 @@ function saveInMongoDB(object) {
   });
 }
 
+function populateChat(room_name) {
+  return Chat.find({ room: room_name }).lean().exec(); // exec gives a promise
+}
+
 // CLIENT
 chat_nsp.on("connect", (socket) => {
   var url = new URL(socket.request.headers.referer);
   socket.username = url.searchParams.get("username");
 
-  // save them to database
-  const user = new User({
-    username: socket.username,
-  });
-  saveInMongoDB(user);
+  // save to database
+  saveInMongoDB(new User({ username: socket.username }));
 
-  var client_id = url.searchParams.get("id");
-  if (client_id != undefined) {
-    let room = "admin_/chat#" + client_id;
-    socket.join(room, listClients(room));
+  const room = "admin_" + socket.username;
+  socket.join(room);
+
+  if (url.searchParams.get("id") != undefined) {
+    // re-write all previous messages (admin)
+    populateChat(room)
+      .then((messages) => {
+        socket.emit("chat-entered", messages);
+      })
+      .catch((err) => console.log(err));
   }
 
-  socket.on("chat", () => {
-    console.log(`\n\nWelcome user - ${socket.username}\n`);
+  socket.on("chat", async () => {
+    console.log(`Welcome user - ${socket.username}\n`);
 
-    let room = "admin_" + socket.id;
-    socket.join(room, listClients(room));
+    // re-write all previous messages (client)
+    var messages = await populateChat(room);
+    socket.emit("chat-entered", messages);
 
     admin_nsp.emit("join-request", {
       id: socket.id.replace("/chat#", ""),
       username: socket.username,
     });
-
-    socket.emit("chat-entered");
   });
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    var room = Object.keys(socket.rooms)[1];
     chat_nsp.in(room).emit("message-received", data);
 
     // prepare for storing message
     var date = new Date();
-    var day = ("0" + date.getDate()).slice(-2),
-      month = ("0" + (date.getMonth() + 1)).slice(-2),
+    var day = date.getDate(),
+      month = date.getMonth(),
       year = date.getFullYear();
-    var date_string = `${day}-${month}-${year}`;
 
-    const chat = new Chat({
-      room: room,
-      message: data.message,
-      username: data.username,
-      timeSent: data.time,
-      dateSent: date_string,
-    });
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
-    saveInMongoDB(chat);
+    var dayNames = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
+
+    saveInMongoDB(
+      new Chat({
+        room: room,
+        message: data.message,
+        username: data.username,
+        timeSent: data.time,
+        dateSent: ` ~ ${dayNames[day]} (${day}-${monthNames[month]}-${year})`,
+      })
+    );
   });
 
   socket.on("typing", (username) => {
-    socket.to(Object.keys(socket.rooms)[1]).emit("typing", username);
+    socket.to(room).emit("typing", username);
   });
 
   socket.on("stop-typing", () => {
-    socket.to(Object.keys(socket.rooms)[1]).emit("stop-typing");
+    socket.to(room).emit("stop-typing");
   });
 
   socket.on("disconnect", () => {
@@ -110,15 +131,9 @@ chat_nsp.on("connect", (socket) => {
 
     // only client side disconnection must be considered
     if (url.searchParams.get("id") == undefined) {
-      console.log(`${socket.username} disconnected`);
+      console.log(`${socket.username} disconnected\n`);
 
       admin_nsp.emit("client-disconnect", socket.username);
     }
   });
 });
-
-// remove collection's documents
-// Chat.collection.remove(function (err) {
-//   if (err) throw err;
-//   // collection is now empty but not deleted
-// });

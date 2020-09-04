@@ -1,34 +1,38 @@
-function chatDetails(username) {
+function chatDetails(username, date_title) {
   var chat_title = document.getElementById("title-info");
-  var date = new Date();
-  var months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
+  if (date_title == undefined) {
+    var date = new Date();
+    var months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
 
-  var days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
+    var days = [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ];
 
-  chat_title.textContent = `Talking to: ${username} ~ ${
-    days[date.getDay()]
-  } (${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()})`;
+    chat_title.textContent = `Talking to: ${username} ~ ${
+      days[date.getDay()]
+    } (${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()})`;
+  } else {
+    chat_title.textContent = `Talking to: ${username} ${date_title}`;
+  }
   // document.getElementById("message").focus();
 }
 

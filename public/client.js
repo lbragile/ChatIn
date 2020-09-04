@@ -18,14 +18,38 @@ socket.on("connect", () => {
       socket.emit("chat");
     });
   } else {
-    SharedFunc.chatDetails(socket.username); // "talking to {client}"
     socket.username = "admin";
     chat_clicked = true;
   }
 });
 
-socket.on("chat-entered", () => {
-  SharedFunc.chatDetails("admin");
+socket.on("chat-entered", (messages) => {
+  var username_title = "admin";
+  if (socket.username == "admin") {
+    username_title = new URLSearchParams(window.location.search).get(
+      "username"
+    );
+  }
+
+  SharedFunc.chatDetails(username_title);
+
+  messages.forEach((element) => {
+    var previous_date = element.dateSent;
+
+    let details = {
+      message: element.message,
+      username: element.username,
+      id: element.id,
+      time: element.timeSent,
+    };
+
+    // print the new date title information
+    if (previous_date != element.dateSent) {
+      SharedFunc.chatDetails(username_title, element.dateSent);
+    }
+
+    SharedFunc.messageDisplay(socket.username, details);
+  });
 });
 
 // sending message
