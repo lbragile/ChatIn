@@ -27,6 +27,7 @@ h2 {
   min-width: 300px;
 }
 
+/* login.ejs */
 .container {
   font-family: Arial, Helvetica, sans-serif;
   position: absolute;
@@ -34,24 +35,93 @@ h2 {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* chat.ejs */
 #chat-container {
-  background: var(--main-bg-color);
+  background: none;
+  width: 300px;
+  height: 500px;
+  padding: 0;
+  top: 95%;
+  left: 95%;
+  transform: translate(-100%, -100%);
+  display: none;
+}
+
+#chat-button {
+  position: absolute;
+  top: 95%;
+  left: 95%;
+  transform: translate(-100%, -100%);
+}
+
+#chat-area {
+  position: relative;
+  width: 100%;
+  height: 90%;
+  padding: 15px;
+  background: white;
+
+  border: lightskyblue solid 1px;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+}
+
+#message-area {
+  width: 100%;
+  height: 75%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+#user-info {
+  height: 10%;
+  background: lightblue;
+  border-radius: 5px 5px 0 0;
+  text-align: center;
+  padding: 10px;
+  font-size: 1.3rem;
+  color: blue;
+  text-transform: capitalize;
+}
+
+#date-info {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#close-chat {
+  position: absolute;
+  left: 90%;
+  top: 0;
+  font-size: 1.3rem;
+}
+
+#close-chat:hover {
+  cursor: pointer;
 }
 
 div .box {
-  padding: 5px 20px;
-  position: relative;
+  padding: 5px 10px;
   border-radius: 5px;
-  max-width: 45%;
+  max-width: 75%;
   word-wrap: break-word;
+}
+
+#typing {
+  margin-top: 10px;
 }
 
 #input-area {
   position: absolute;
-  bottom: 10%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
 }
 
-input {
+#message {
+  width: 60%;
   border: 1px solid black;
   border-radius: 5px;
 }
@@ -65,4 +135,26 @@ input {
 
 li:hover {
   cursor: pointer;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 15px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgb(69, 212, 255);
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #0071b3;
 }

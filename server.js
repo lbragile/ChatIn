@@ -113,7 +113,7 @@ chat_nsp.on("connect", (socket) => {
         message: data.message,
         username: data.username,
         timeSent: data.time,
-        dateSent: ` ~ ${dayNames[day]} (${day}-${monthNames[month]}-${year})`,
+        dateSent: `${dayNames[day]} (${day}-${monthNames[month]}-${year})`,
       })
     );
   });

@@ -18,23 +18,28 @@
     />
   </head>
   <body>
-    <div class="container h-100" id="chat-container">
-      <span class="d-flex justify-content-center" id="title-info"></span>
-      <div class="h-50 overflow-auto">
-        <div id="chat-area"></div>
-      </div>
-      <span class="d-flex justify-content-center" id="typing"></span>
+    <div class="container" id="chat-container">
+      <span id="close-chat">&Cross;</span>
+      <div id="user-info"></div>
+      <div id="chat-area">
+        <div class="d-flex justify-content-center" id="date-info"></div>
+        <div id="message-area"></div>
+        <div class="d-flex justify-content-center" id="typing"></div>
 
-      <div class="input-group d-flex justify-content-center" id="input-area">
-        <input
-          type="text"
-          class="px-2"
-          placeholder="Enter Message"
-          id="message"
-        />
-        <button type="submit" class="btn btn-primary ml-2" id="send">
-          Send
-        </button>
+        <div
+          class="input-group d-flex justify-content-center my-1"
+          id="input-area"
+        >
+          <input
+            type="text"
+            class="px-2"
+            placeholder="Enter Message"
+            id="message"
+          />
+          <button type="submit" class="btn btn-primary ml-2" id="send">
+            Send
+          </button>
+        </div>
       </div>
     </div>
 

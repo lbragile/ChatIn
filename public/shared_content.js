@@ -1,5 +1,9 @@
 function chatDetails(username, date_title) {
-  var chat_title = document.getElementById("title-info");
+  var date_info = document.getElementById("date-info");
+  var user_info = document.getElementById("user-info");
+
+  user_info.textContent = username;
+
   if (date_title == undefined) {
     var date = new Date();
     var months = [
@@ -27,11 +31,11 @@ function chatDetails(username, date_title) {
       "Sunday",
     ];
 
-    chat_title.textContent = `Talking to: ${username} ~ ${
-      days[date.getDay()]
-    } (${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()})`;
+    date_info.textContent = `${days[date.getDay()]} (${date.getDate()}-${
+      months[date.getMonth()]
+    }-${date.getFullYear()})`;
   } else {
-    chat_title.textContent = `Talking to: ${username} ${date_title}`;
+    date_info.textContent = `${date_title}`;
   }
   // document.getElementById("message").focus();
 }
@@ -66,11 +70,10 @@ function messageDisplay(username, data) {
 
   message_div.innerHTML = data.message;
 
-  var bg_color, box_pseudo, margin_x, title;
+  var bg_color, margin_x, title;
   if (username == data.username) {
     bg_color = "bg-secondary";
-    box_pseudo = "box-right";
-    margin_x = "mr-4 ml-auto";
+    margin_x = "mr-1 ml-auto";
     title = "You" + data.time;
 
     // clear the message from the message field only for sender
@@ -79,8 +82,7 @@ function messageDisplay(username, data) {
     message.focus();
   } else {
     bg_color = "bg-dark";
-    box_pseudo = "box-left";
-    margin_x = "ml-4";
+    margin_x = "ml-1";
     title = data.username + data.time;
   }
 
@@ -88,10 +90,10 @@ function messageDisplay(username, data) {
   message_title.style["fontWeight"] = "bold";
   message_title.className = "d-block text-center";
 
-  message_div.className = `my-1 ${margin_x} box ${box_pseudo} ${bg_color} text-light text-left col`;
-  let chat_area = document.getElementById("chat-area");
+  message_div.className = `my-1 ${margin_x} box ${bg_color} text-light text-left col`;
+  let message_area = document.getElementById("message-area");
   message_div.prepend(message_title);
-  chat_area.append(message_div);
+  message_area.append(message_div);
 }
 
 function addUserToAdminList(username) {

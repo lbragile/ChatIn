@@ -2,24 +2,36 @@ import * as SharedFunc from "./shared_content.js";
 
 var socket = io.connect("/chat");
 
-var chat_clicked = false;
+function scrollToBottomOfChat() {
+  // scroll to the bottom of chat area such that new message is seen
+  let message_area = document.getElementById("message-area");
+  message_area.scrollTop = message_area.scrollHeight;
+}
 
 socket.on("connect", () => {
   var queryParams = new URLSearchParams(window.location.search);
   socket.username = queryParams.get("username");
 
-  if (!window.location.href.includes("id=")) {
-    document.getElementById("chat").addEventListener("click", function () {
+  var chat_window = document.getElementById("chat-container");
+  var chat_button = document.getElementById("chat-button");
+  var close_chat = document.getElementById("close-chat");
+  if (queryParams.get("id") == undefined) {
+    chat_button.addEventListener("click", function () {
       // hide the join button
-      this.className = ".d-none";
       this.style.display = "none";
+      chat_window.style.display = "block";
 
-      chat_clicked = true;
       socket.emit("chat");
+    });
+
+    close_chat.addEventListener("click", function () {
+      // hide the chat window
+      chat_button.style.display = "block";
+      chat_window.style.display = "none";
     });
   } else {
     socket.username = "admin";
-    chat_clicked = true;
+    chat_window.style.display = "block";
   }
 });
 
@@ -50,37 +62,35 @@ socket.on("chat-entered", (messages) => {
 
     SharedFunc.messageDisplay(socket.username, details);
   });
+
+  scrollToBottomOfChat();
 });
 
 // sending message
 document.getElementById("send").addEventListener("click", function () {
-  if (chat_clicked) {
-    SharedFunc.emitMessage(socket);
-  }
+  SharedFunc.emitMessage(socket);
 });
 
 document.addEventListener("keypress", function (e) {
-  if (e.key === "Enter" && chat_clicked) {
+  if (e.key === "Enter") {
     SharedFunc.emitMessage(socket);
   }
 });
 
 // typing
 document.getElementById("message").addEventListener("focus", function () {
-  if (chat_clicked) {
-    socket.emit("typing", socket.username);
-  }
+  socket.emit("typing", socket.username);
 });
 
 // stop typing
 document.getElementById("message").addEventListener("blur", function () {
-  if (chat_clicked) {
-    socket.emit("stop-typing");
-  }
+  socket.emit("stop-typing");
 });
 
 socket.on("message-received", (data) => {
   SharedFunc.messageDisplay(socket.username, data);
+
+  scrollToBottomOfChat();
 });
 
 socket.on("typing", (username) => {
