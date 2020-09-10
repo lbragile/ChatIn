@@ -1,17 +1,19 @@
 const express = require("express");
 const socket = require("socket.io");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 var Chat = require("./models/chat-model");
-var User = require("./models/users-model");
 
 var homeRoutes = require("./routes/homeRoutes");
+var registerRoutes = require("./routes/registerRoutes");
 var chatRoutes = require("./routes/chatRoutes");
 var adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 app.use(express.json({ limit: "1mb" })); // for parsing application/json
 app.use(express.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+app.use(cookieParser());
 
 var port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`listening on port ${port}`));
@@ -21,10 +23,11 @@ app.use(express.static(path.join(__dirname, "public"))); // use all files define
 app.set("view engine", "ejs"); // set the engine
 
 app.use(homeRoutes);
+app.use("/register", registerRoutes);
 app.use("/chat", chatRoutes);
 app.use("/admin", adminRoutes);
 
-const chat_nsp = io.of("/chat"),
+const client_nsp = io.of("/chat"),
   admin_nsp = io.of("/admin");
 
 function saveInMongoDB(object) {
@@ -39,13 +42,24 @@ function populateChat(room_name) {
   return Chat.find({ room: room_name }).lean().exec(); // exec gives a promise
 }
 
+admin_nsp.on("connect", (socket) => {
+  var user_list = [];
+  var id_list = [];
+  client_nsp.clients((error, clients) => {
+    if (error) throw error;
+    clients.forEach((socket_id) => {
+      id_list.push(socket_id);
+      user_list.push(client_nsp.sockets[socket_id].username);
+    });
+    console.log(user_list);
+    socket.emit("user-list", { users: user_list, ids: id_list });
+  });
+});
+
 // CLIENT
-chat_nsp.on("connect", (socket) => {
+client_nsp.on("connect", (socket) => {
   var url = new URL(socket.request.headers.referer);
   socket.username = url.searchParams.get("username");
-
-  // save to database
-  saveInMongoDB(new User({ username: socket.username }));
 
   const room = "admin_" + socket.username;
   socket.join(room);
@@ -65,16 +79,11 @@ chat_nsp.on("connect", (socket) => {
     // re-write all previous messages (client)
     var messages = await populateChat(room);
     socket.emit("chat-entered", messages);
-
-    admin_nsp.emit("join-request", {
-      id: socket.id.replace("/chat#", ""),
-      username: socket.username,
-    });
   });
 
   // broadcase message to all
   socket.on("message-sent", (data) => {
-    chat_nsp.in(room).emit("message-received", data);
+    client_nsp.in(room).emit("message-received", data);
 
     // prepare for storing message
     var date = new Date();
@@ -124,16 +133,5 @@ chat_nsp.on("connect", (socket) => {
 
   socket.on("stop-typing", () => {
     socket.to(room).emit("stop-typing");
-  });
-
-  socket.on("disconnect", () => {
-    var url = new URL(socket.request.headers.referer);
-
-    // only client side disconnection must be considered
-    if (url.searchParams.get("id") == undefined) {
-      console.log(`${socket.username} disconnected\n`);
-
-      admin_nsp.emit("client-disconnect", socket.username);
-    }
   });
 });

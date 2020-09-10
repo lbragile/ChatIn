@@ -18,9 +18,11 @@
     />
   </head>
   <body>
+    <% if(type == "client") { %>
     <button type="button" class="btn btn-secondary" id="chat-button">
       Chat
     </button>
+    <% } %>
     <div class="container" id="chat-container">
       <span id="close-chat">&Cross;</span>
       <div id="user-info"></div>

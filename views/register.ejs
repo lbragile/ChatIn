@@ -19,8 +19,8 @@
   </head>
   <body>
     <div class="container">
-      <h2>Login</h2>
-      <form method="POST" action="/">
+      <h2>Register</h2>
+      <form method="POST" action="/register">
         <div class="form-group">
           <label for="username">Username <span class="required">*</span></label>
           <input
@@ -43,6 +43,19 @@
             required
           />
         </div>
+        <div class="form-group">
+          <label for="confirm_password"
+            >Confirm Password <span class="required">*</span></label
+          >
+          <input
+            type="password"
+            name="confirm_password"
+            class="form-control"
+            id="confirm-password"
+            placeholder="Secure_Password!"
+            required
+          />
+        </div>
 
         <% if (message) {%>
         <h5 class="alert alert-danger" role="alert"><%= message %></h5>
@@ -52,9 +65,9 @@
           type="submit"
           class="btn btn-primary d-flex justify-content-center"
         >
-          Login
+          Register
         </button>
-        <a href="/register">Register</a>
+        <a href="/">Login</a>
       </form>
     </div>
   </body>

@@ -1,4 +1,4 @@
-import * as SharedFunc from "./shared_content.js";
+import * as SharedFunc from "./shared.js";
 
 var socket = io.connect("/chat");
 
@@ -15,19 +15,24 @@ socket.on("connect", () => {
   var chat_window = document.getElementById("chat-container");
   var chat_button = document.getElementById("chat-button");
   var close_chat = document.getElementById("close-chat");
+
+  let chatBefore = false;
   if (queryParams.get("id") == undefined) {
     chat_button.addEventListener("click", function () {
       // hide the join button
       this.style.display = "none";
       chat_window.style.display = "block";
 
-      socket.emit("chat");
+      if (!chatBefore) {
+        socket.emit("chat");
+      }
     });
 
     close_chat.addEventListener("click", function () {
       // hide the chat window
       chat_button.style.display = "block";
       chat_window.style.display = "none";
+      chatBefore = true;
     });
   } else {
     socket.username = "admin";

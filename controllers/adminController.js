@@ -1,7 +1,11 @@
 var admin_get = (req, res) => {
-  res.render("admin_menu");
+  if (!req.cookies["admin"]) {
+    res.render("login", { message: "Login first" });
+  } else {
+    res.render("admin");
+  }
 };
 
 module.exports = {
-    admin_get
-}
+  admin_get,
+};

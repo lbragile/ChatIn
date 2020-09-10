@@ -1,3 +1,35 @@
+function getDateStr() {
+  var date = new Date();
+  var months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  var days = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  return `${days[date.getDay()]} (${date.getDate()}-${
+    months[date.getMonth()]
+  }-${date.getFullYear()})`;
+}
+
 function chatDetails(username, date_title) {
   var date_info = document.getElementById("date-info");
   var user_info = document.getElementById("user-info");
@@ -5,35 +37,7 @@ function chatDetails(username, date_title) {
   user_info.textContent = username;
 
   if (date_title == undefined) {
-    var date = new Date();
-    var months = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-
-    var days = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-
-    date_info.textContent = `${days[date.getDay()]} (${date.getDate()}-${
-      months[date.getMonth()]
-    }-${date.getFullYear()})`;
+    date_info.textContent = getDateStr();
   } else {
     date_info.textContent = `${date_title}`;
   }
@@ -96,12 +100,21 @@ function messageDisplay(username, data) {
   message_area.append(message_div);
 }
 
-function addUserToAdminList(username) {
+function addUserToAdminList(username, id) {
   var list_item = document.createElement("li");
   list_item.id = username;
   var item_text = document.createTextNode(username);
   list_item.appendChild(item_text);
   document.getElementById("joined-users").appendChild(list_item);
+  list_item.addEventListener("click", () => {
+    window.open(`/chat?username=${username}&id=${id}`, "_blank");
+  });
 }
 
-export { chatDetails, emitMessage, padNum, messageDisplay, addUserToAdminList };
+export {
+  getDateStr,
+  chatDetails,
+  emitMessage,
+  messageDisplay,
+  addUserToAdminList,
+};

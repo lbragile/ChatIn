@@ -11,7 +11,18 @@ The admin has a special namespace where they can see all active users that want 
 
 ## Usage:
 
-Visit https://lbragile-chat.herokuapp.com/
+#### Clone the Repository
+
+- git clone https://github.com/lbragile/ChatIn.git
+- cd ChatIn
+
+#### Install the required dependencies
+
+- npm install
+
+#### Run the application
+
+- npm start _OR_ npm run devStart
 
 ## Todo
 
@@ -19,13 +30,13 @@ Visit https://lbragile-chat.herokuapp.com/
 
 - [x] Get communication between client and admin to work
 - [x] Admin must have a list of users to choose from to enter the chat room with.
-- [ ] Database communication to store (persist) messages upon reload/disconnect.
-- [ ] Optimize Style - make a button for chat pop out like Messenger.
+- [x] Database communication to store (persist) messages upon reload/disconnect.
+- [x] Optimize Style - make a button for chat pop out like Messenger.
 
 ##### Minor
 
-- [ ] Registration page, password hashing and storage in database, email verification.
-- [ ] Login persistence (cookies)
+- [x] Registration page, password hashing and storage in database, email verification.
+- [x] Login persistence (cookies)
 
 ## Implementation Details:
 

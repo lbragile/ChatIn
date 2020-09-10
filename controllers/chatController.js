@@ -1,8 +1,9 @@
 var chat_get = (req, res) => {
-  if (req.query.id != undefined) {
-    res.render("admin_chat");
+  if (!req.cookies["client"]) {
+    res.render("login", { message: "Login first" });
   } else {
-    res.render("chat");
+    let chat_type = req.query.id != undefined ? "admin" : "client";
+    res.render("chat", { type: chat_type });
   }
 };
 
