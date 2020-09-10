@@ -13,16 +13,16 @@ The admin has a special namespace where they can see all active users that want 
 
 #### Clone the Repository
 
-- git clone https://github.com/lbragile/ChatIn.git
-- cd ChatIn
+- `git clone https://github.com/lbragile/ChatIn.git`
+- `cd ChatIn`
 
 #### Install the required dependencies
 
-- npm install
+- `npm install`
 
 #### Run the application
 
-- npm start _OR_ npm run devStart
+- `npm start` _OR_ `npm run devStart`
 
 ## Todo
 
